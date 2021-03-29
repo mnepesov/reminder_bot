@@ -1,0 +1,21 @@
+rabbitmq:
+  Host: localhost
+  Port: 5672
+  User: guest
+  WorkerPoolSize: 2
+exchange:
+  CommandUsersGet: command.user.get
+  CommandUsersCreate: command.user.create
+queue:
+  UsersRepoCommandUsersGet: user.command.user.get
+  UsersRepoCommandUsersCreate: user.command.user.create
+  UsersRepoCommandUsersUpdateTimezone: user.command.user.updateTimezone
+  ParsingCommandTextParse: parsing.comman.text.parse
+  ReminderCommandReminderAdd: reminder.command.reminder.add
+  BotEventNotifySend: bot.event.notify.send
+postgres:
+  PostgresqlHost: localhost
+  PostgresqlPort: 5000
+  PostgresqlUser: postgres
+  PostgresqlDbname: reminder
+  PostgresqlSSLMode: false
