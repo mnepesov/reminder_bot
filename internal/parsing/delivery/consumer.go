@@ -80,6 +80,7 @@ func (c *ParsingConsumer) StartParseConsumer(ctx context.Context, workerPoolSize
 		return nil
 	}
 }
+
 func (c *ParsingConsumer) ParseWorker(ctx context.Context, messages <-chan amqp.Delivery) {
 	for d := range messages {
 		fmt.Println("New Request: ")
@@ -158,7 +159,7 @@ func parse(str string) (time.Time, error) {
 			return d, nil
 		}
 	}
-	return time.Now(), errors.New("date not found")
+	return time.Now(), errors.New("Не могу парсить время из текста, поробуйте еще раз")
 }
 
 func addDate(s string, d int) (time.Time, error) {
