@@ -196,6 +196,14 @@ func findNumber(s string) (int, bool) {
 		return 5, true
 	case "ШЕСТЬ":
 		return 6, true
+	case "СЕМЬ":
+		return 7, true
+	case "ВОСЕМЬ":
+		return 8, true
+	case "ДЕВЯТЬ":
+		return 9, true
+	case "ДЕСЯТЬ":
+		return 10, true
 	default:
 		return 0, false
 	}
