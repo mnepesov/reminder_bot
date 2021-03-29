@@ -18,3 +18,4 @@ RabbitMQPassword=guest
 * [github.com/streadway/amqp](https://github.com/streadway/amqp) - AMQP 0.9.1 client with RabbitMQ extensions in Go
 * [github.com/jmoiron/sqlx](https://github.com/jmoiron/sqlx) - sqlx is a package for Go which provides a set of extensions on top of the excellent built-in database/sql package.
 * [github.com/joho/godotenv](https://github.com/joho/godotenv) - loads env vars from a .env file
+* [github.com/go-telegram-bot-api/telegram-bot-api](https://github.com/go-telegram-bot-api/telegram-bot-api) - A Telegram bot framework in Go.
