@@ -14,6 +14,7 @@ type ParsingService interface {
 
 type ReminderService interface {
 	AddReminder(req models.AddReminderRequest) error
+	GetRemindersByUserId(req models.GetRemindersRequest) ([]models.Reminder, error)
 }
 
 type UseCase interface {

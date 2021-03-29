@@ -23,7 +23,7 @@ func NewBotUseCase(userService *user.Service, parsingService *parsing.Service, r
 }
 
 func (b *BotUseCase) GetUser(userId int) (models.User, error) {
-	
+
 	data := models.GetUser{Id: userId}
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -37,7 +37,7 @@ func (b *BotUseCase) GetUser(userId int) (models.User, error) {
 	if err := json.Unmarshal(respUser, &u); err != nil {
 		return models.User{}, err
 	}
-	
+
 	return u, err
 }
 
@@ -46,7 +46,7 @@ func (b *BotUseCase) CreateUser(user models.User) error {
 	if err != nil {
 		return err
 	}
-	
+
 	err = b.userService.CreateUser(jsonUser)
 	return err
 }
@@ -68,22 +68,22 @@ func (b *BotUseCase) UpdateTimezone(userId int, timezone string) error {
 }
 
 func (b *BotUseCase) Parse(req models.ParseRequest) (models.ParseResponse, error) {
-	
+
 	jsonData, err := json.Marshal(req)
 	if err != nil {
 		return models.ParseResponse{}, err
 	}
-	
+
 	data, err := b.parsingService.Parse(jsonData)
 	if err != nil {
 		return models.ParseResponse{}, err
 	}
-	
+
 	res := models.ParseResponse{}
 	if err := json.Unmarshal(data, &res); err != nil {
 		return models.ParseResponse{}, err
 	}
-	
+
 	return res, nil
 }
 
@@ -92,7 +92,26 @@ func (b *BotUseCase) AddReminder(reminder models.AddReminderRequest) error {
 	if err != nil {
 		return err
 	}
-	
+
 	err = b.reminderService.AddReminder(data)
 	return err
+}
+
+func (b *BotUseCase) GetRemindersByUserId(req models.GetRemindersRequest) ([]models.Reminder, error) {
+	data, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := b.reminderService.GetRemindersByUserId(data)
+	if err != nil {
+		return nil, err
+	}
+
+	var reminders []models.Reminder
+	err = json.Unmarshal(res, &reminders)
+	if err != nil {
+		return nil, err
+	}
+	return reminders, nil
 }

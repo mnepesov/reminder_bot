@@ -12,15 +12,26 @@ import (
 const (
 	errorText = "Упс! Что-то пошло не так\n Попробуйте еще раз\n /start"
 	helloText = "Добро пожаловать в чат-бот Reminder!\nВаш часовой пояс: Europe/Minsk\n\nО чем вам напомнить?"
-	
+
 	commandStart     = "start"
 	commandStartText = "О чем вам напомнить?"
-	
+
 	addText      = "Пожалуйста, введите текст напоминания и время. ☝️Также обратите внимание, что вы можете создавать напоминания не нажимая никаких дополнительных кнопок и не отправляя команд, просто отправьте текст напоминания и, опционально, время."
 	settingsText = "Ваши текущие настройки:\n\n - часовой пояс: %s"
-	timezoneText = "Пожалуйста, отправьте мне название своего города, чтобы я мог определить ваш часовой пояс. \nНапример: Minsk"
-	webText      = "Сайт временно не доступен"
-	listText     = "Пусто"
+
+	timezoneText    = "Пожалуйста, отправьте мне название своего города, чтобы я мог определить ваш часовой пояс. \nНапример: Minsk"
+	errTimezoneText = "😐Не могу определить ваше местоположение, пожалуйста, попробуйте изменить ваш запрос"
+	AddTimezoneText = "Ваш часовой пояс определен\nВаши текущие настройки:\n\n - язык: Русский\n - часовой пояс: %s"
+
+	webText  = "Сайт временно не доступен"
+	listText = "Пусто"
+
+	errHandleMessageText = "Не могу обработать ваш текст"
+
+	errAddReminderText = "Напоминание не добавлено\n\n%s"
+	addReminderText    = "Напоминание добавлено\n\nТекст: %s"
+
+	unknownCommandText = "я не знаю эту команду"
 )
 
 //commands
@@ -34,19 +45,14 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) error {
 }
 
 func (b *Bot) handleStartCommand(message *tgbotapi.Message) error {
-	
+
 	_ = b.cache.SetNavigation(message.From.ID, "start")
-	
-	msg := tgbotapi.NewMessage(message.Chat.ID, commandStartText)
-	msg.ReplyMarkup = mainMenu
-	_, err := b.bot.Send(msg)
-	return err
+
+	return b.send(commandStartText, &mainMenu, message)
 }
 
 func (b *Bot) handleUnknownCommand(message *tgbotapi.Message) error {
-	msg := tgbotapi.NewMessage(message.Chat.ID, "я не знаю эту команду")
-	_, err := b.bot.Send(msg)
-	return err
+	return b.send(unknownCommandText, &mainMenu, message)
 }
 
 //handle messages
@@ -72,47 +78,51 @@ func (b *Bot) handleMessage(message *tgbotapi.Message) error {
 //add message
 func (b *Bot) handleAddMessage(message *tgbotapi.Message) error {
 	_ = b.cache.SetNavigation(message.From.ID, "add")
-	msg := tgbotapi.NewMessage(message.Chat.ID, addText)
-	msg.ReplyMarkup = exitMenu
-	_, err := b.bot.Send(msg)
-	return err
+	return b.send(addText, &exitMenu, message)
 }
 
 //settings message
 func (b *Bot) handleSettingsMessage(message *tgbotapi.Message) error {
 	user, _ := b.cache.GetUserInfo(message.From.ID)
 	_ = b.cache.SetNavigation(message.From.ID, "settings")
-	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(settingsText, user.Timezone))
-	msg.ReplyMarkup = settingMenu
-	_, err := b.bot.Send(msg)
-	return err
+	text := fmt.Sprintf(settingsText, user.Timezone)
+	return b.send(text, &settingMenu, message)
 }
 
 //timezone message
 func (b *Bot) handleTimezoneMessage(message *tgbotapi.Message) error {
 	_ = b.cache.SetNavigation(message.From.ID, "timezone")
-	msg := tgbotapi.NewMessage(message.Chat.ID, timezoneText)
-	msg.ReplyMarkup = exitMenu
-	_, err := b.bot.Send(msg)
-	return err
+	return b.send(timezoneText, &exitMenu, message)
 }
 
 //web message
 func (b *Bot) handleWebMessage(message *tgbotapi.Message) error {
 	_ = b.cache.SetNavigation(message.From.ID, "web")
-	msg := tgbotapi.NewMessage(message.Chat.ID, webText)
-	msg.ReplyMarkup = mainMenu
-	_, err := b.bot.Send(msg)
-	return err
+	return b.send(webText, &mainMenu, message)
 }
 
 //list
 func (b *Bot) handleListMessage(message *tgbotapi.Message) error {
-	_ = b.cache.SetNavigation(message.From.ID, "list")
-	msg := tgbotapi.NewMessage(message.Chat.ID, listText)
-	msg.ReplyMarkup = mainMenu
-	_, err := b.bot.Send(msg)
-	return err
+
+	list, err := b.useCase.GetRemindersByUserId(models.GetRemindersRequest{UserId: message.From.ID})
+	if err != nil {
+		fmt.Println(err)
+		_ = b.cache.SetNavigation(message.From.ID, "start")
+		return b.send(errorText, &mainMenu, message)
+	}
+
+	if len(list) == 0 {
+		_ = b.cache.SetNavigation(message.From.ID, "start")
+		return b.send(listText, &mainMenu, message)
+	}
+
+	text := "Ваши напоминания:\n"
+	for i, r := range list {
+		text += fmt.Sprintf("%d) %s\n", i+1, r.Text)
+	}
+
+	_ = b.cache.SetNavigation(message.From.ID, "start")
+	return b.send(text, &mainMenu, message)
 }
 
 //exit message
@@ -141,16 +151,14 @@ func (b *Bot) handleUnknownMessage(message *tgbotapi.Message) error {
 	case "timezone":
 		{
 			city := message.Text
-			
+
 			gcReq := &maps.GeocodingRequest{
 				Address: city,
 			}
 			gcRes, err := b.gmClient.Geocode(context.Background(), gcReq)
 			if err != nil {
 				_ = b.cache.SetNavigation(message.From.ID, "timezone")
-				msg := tgbotapi.NewMessage(message.Chat.ID, "😐Не могу определить ваше местоположение, пожалуйста, попробуйте изменить ваш запрос")
-				msg.ReplyMarkup = exitMenu
-				_, err = b.bot.Send(msg)
+				return b.send(errTimezoneText, &exitMenu, message)
 			}
 			tzReq := &maps.TimezoneRequest{
 				Location: &maps.LatLng{
@@ -163,30 +171,20 @@ func (b *Bot) handleUnknownMessage(message *tgbotapi.Message) error {
 			tzRes, err := b.gmClient.Timezone(context.Background(), tzReq)
 			if err != nil {
 				_ = b.cache.SetNavigation(message.From.ID, "timezone")
-				msg := tgbotapi.NewMessage(message.Chat.ID, "😐Не могу определить ваше местоположение, пожалуйста, попробуйте изменить ваш запрос")
-				msg.ReplyMarkup = exitMenu
-				_, err = b.bot.Send(msg)
+				return b.send(errorText, &exitMenu, message)
 			}
 			err = b.useCase.UpdateTimezone(message.From.ID, tzRes.TimeZoneID)
 			if err != nil {
-				fmt.Println(err)
 				_ = b.cache.SetNavigation(message.From.ID, "timezone")
-				msg := tgbotapi.NewMessage(message.Chat.ID, "😐Не могу определить ваше местоположение, пожалуйста, попробуйте изменить ваш запрос")
-				msg.ReplyMarkup = exitMenu
-				_, err = b.bot.Send(msg)
+				return b.send(errTimezoneText, &exitMenu, message)
 			}
 			_ = b.cache.SetNavigation(message.From.ID, "settings")
-			msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Ваш часовой пояс определен\nВаши текущие настройки:\n\n - язык: Русский\n - часовой пояс: %s", tzRes.TimeZoneID))
-			msg.ReplyMarkup = settingMenu
-			_, err = b.bot.Send(msg)
-			return err
+			text := fmt.Sprintf(AddTimezoneText, tzRes.TimeZoneID)
+			return b.send(text, &settingMenu, message)
 		}
 	default:
 		_ = b.cache.SetNavigation(message.From.ID, "start")
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Не могу обработать ваш текст")
-		msg.ReplyMarkup = mainMenu
-		_, err := b.bot.Send(msg)
-		return err
+		return b.send(errHandleMessageText, &mainMenu, message)
 	}
 }
 
@@ -194,29 +192,30 @@ func (b *Bot) addReminders(message *tgbotapi.Message) error {
 	res, err := b.useCase.Parse(models.ParseRequest{Text: message.Text})
 	if err != nil {
 		_ = b.cache.SetNavigation(message.From.ID, "start")
-		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("✅Напоминание не добавлено\n\n%s", err.Error()))
-		msg.ReplyMarkup = mainMenu
-		_, err = b.bot.Send(msg)
-		return err
+		text := fmt.Sprintf(errAddReminderText, err.Error())
+		return b.send(text, &mainMenu, message)
 	}
-	
+
 	err = b.useCase.AddReminder(models.AddReminderRequest{
 		UserId: message.From.ID,
 		Text:   res.Text,
 		Date:   res.Time,
 	})
-	
+
 	if err != nil {
 		_ = b.cache.SetNavigation(message.From.ID, "start")
-		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Напоминание не добавлено\n\n%s", err.Error()))
-		msg.ReplyMarkup = mainMenu
-		_, err = b.bot.Send(msg)
-		return err
+		text := fmt.Sprintf(errAddReminderText, err.Error())
+		return b.send(text, &mainMenu, message)
 	}
-	
+
 	_ = b.cache.SetNavigation(message.From.ID, "start")
-	msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Напоминание добавлено\n\n%s\n%s", res.Text, res.Time))
-	msg.ReplyMarkup = mainMenu
-	_, err = b.bot.Send(msg)
+	text := fmt.Sprintf(addReminderText, res.Text)
+	return b.send(text, &mainMenu, message)
+}
+
+func (b *Bot) send(text string, menu *tgbotapi.ReplyKeyboardMarkup, message *tgbotapi.Message) error {
+	msg := tgbotapi.NewMessage(message.Chat.ID, text)
+	msg.ReplyMarkup = menu
+	_, err := b.bot.Send(msg)
 	return err
 }

@@ -18,3 +18,6 @@ func NewNotifyUseCase(repo notify.Repository) *NotifyUseCase {
 func (n *NotifyUseCase) GetNotifies() ([]models.NotifyRequest, error) {
 	return n.repo.GetNotifies()
 }
+func (n *NotifyUseCase) DeactivateReminder(id int) error {
+	return n.repo.DeactivateReminder(id)
+}

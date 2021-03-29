@@ -55,6 +55,7 @@ type Queue struct {
 	UsersRepoCommandUsersUpdateTimezone string
 	ParsingCommandTextParse             string
 	ReminderCommandReminderAdd          string
+	ReminderCommandRemindersGet          string
 	BotEventNotifySend                  string
 }
 

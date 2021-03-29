@@ -18,7 +18,7 @@ func (n *NotifyPostgres) GetNotifies() ([]models.NotifyRequest, error) {
 	var notifies []models.NotifyRequest
 	rows, err := n.db.Query(`
 		select r.id,
-			   r.user_id,
+			   u.chat_id,
 			   r.text
 		from reminders r
 				 join users u on u.id = r.user_id
@@ -40,4 +40,9 @@ func (n *NotifyPostgres) GetNotifies() ([]models.NotifyRequest, error) {
 		
 	}
 	return notifies, nil
+}
+
+func (r *NotifyPostgres) DeactivateReminder(id int) error {
+	_, err := r.db.Exec("update reminders set is_active = false where id = $1", id)
+	return err
 }

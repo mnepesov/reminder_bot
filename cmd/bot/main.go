@@ -81,7 +81,6 @@ func NotifyConsumer(conn *amqp.Connection, bot *tgbotapi.BotAPI, queueName strin
 	if err != nil {
 		return
 	}
-	
 	queue, err := ch.QueueDeclare(
 		queueName,
 		false,
@@ -115,7 +114,7 @@ func NotifyConsumer(conn *amqp.Connection, bot *tgbotapi.BotAPI, queueName strin
 			continue
 		}
 		
-		msg := tgbotapi.NewMessage(req.ChatId, req.Text)
+		msg := tgbotapi.NewMessage(req.ChatId, "Напоминаем: \n" + req.Text)
 		_, err := bot.Send(msg)
 		if err != nil {
 			fmt.Println(err)

@@ -12,6 +12,7 @@ queue:
   UsersRepoCommandUsersUpdateTimezone: user.command.user.updateTimezone
   ParsingCommandTextParse: parsing.comman.text.parse
   ReminderCommandReminderAdd: reminder.command.reminder.add
+  ReminderCommandRemindersGet: reminder.command.reminder.get
   BotEventNotifySend: bot.event.notify.send
 postgres:
   PostgresqlHost: localhost

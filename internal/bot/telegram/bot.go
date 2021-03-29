@@ -28,9 +28,9 @@ func NewBot(bot *tgbotapi.BotAPI, cache cache.Cache, useCase useCase.UseCase, ma
 
 func (b *Bot) Start() error {
 	b.bot.Debug = false
-	
+
 	log.Printf("Authorized on account %s", b.bot.Self.UserName)
-	
+
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	updates, err := b.bot.GetUpdatesChan(u)
@@ -38,7 +38,7 @@ func (b *Bot) Start() error {
 		return err
 	}
 	for update := range updates {
-		
+
 		if update.Message == nil { // ignore any non-Message Updates
 			continue
 		}
@@ -48,7 +48,7 @@ func (b *Bot) Start() error {
 			u, err := b.useCase.GetUser(message.From.ID)
 			if err != nil {
 				err := b.useCase.CreateUser(models.User{
-					Id:     message.From.ID,
+					Id:       message.From.ID,
 					ChatId:   message.Chat.ID,
 					Username: message.From.UserName,
 					FullName: message.From.FirstName + " " + message.From.LastName,
@@ -61,7 +61,7 @@ func (b *Bot) Start() error {
 					continue
 				} else {
 					_ = b.cache.SetNavigation(message.From.ID, "start")
-					
+
 					msg := tgbotapi.NewMessage(message.Chat.ID, helloText)
 					msg.ReplyMarkup = mainMenu
 					_, err = b.bot.Send(msg)

@@ -31,10 +31,9 @@ func NewNotifyService(conn *amqp.Connection, uc UseCase, queueName string) (*Not
 }
 
 func (n *Notify) Start(ctx context.Context) error {
-	
+
 	s := gocron.NewScheduler()
 	s.Every(1).Minute().Do(n.checkNew)
-	fmt.Println("GELDI")
 	select {
 	case <-s.Start():
 		fmt.Println("DYNDY")
@@ -48,15 +47,12 @@ func (n *Notify) Start(ctx context.Context) error {
 }
 
 func (n *Notify) checkNew() error {
-	
+
 	notifies, err := n.uc.GetNotifies()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println("RESULT")
-	fmt.Println(len(notifies))
-	fmt.Println(notifies)
 	for _, notify := range notifies {
 		go func(item models.NotifyRequest) {
 			err := n.publish(item)
@@ -69,7 +65,7 @@ func (n *Notify) checkNew() error {
 }
 
 func (n *Notify) publish(notify models.NotifyRequest) error {
-	
+
 	body, err := json.Marshal(notify)
 	if err != nil {
 		fmt.Println(err)
@@ -87,5 +83,8 @@ func (n *Notify) publish(notify models.NotifyRequest) error {
 	if err != nil {
 		return err
 	}
+	go func() {
+		_ = n.uc.DeactivateReminder(notify.Id)
+	}()
 	return nil
 }
