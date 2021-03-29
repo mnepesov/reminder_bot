@@ -36,7 +36,6 @@ func (n *Notify) Start(ctx context.Context) error {
 	s.Every(1).Minute().Do(n.checkNew)
 	select {
 	case <-s.Start():
-		fmt.Println("DYNDY")
 		return nil
 	case chanErr := <-n.channel.NotifyClose(make(chan *amqp.Error)):
 		fmt.Printf("NotifyConsumer.Close: %v\n", chanErr)
