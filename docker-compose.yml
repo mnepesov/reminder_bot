@@ -3,7 +3,7 @@ version: "3"
 services:
   postgesql:
     image: postgres:latest
-    container_name: bot_reminder
+    container_name: bot_reminder_db
     ports:
       - 5000:5432
     restart: always
@@ -16,7 +16,7 @@ services:
 
   rabbitmq:
     image: 'rabbitmq:3.6-management-alpine'
-    container_name: 'rabbitmq'
+    container_name: 'bot_reminder_rabbitmq'
     ports:
       - 5672:5672
       - 15672:15672
