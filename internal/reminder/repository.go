@@ -1,8 +1,9 @@
-package reminders
+package reminder
 
 import "reminder_bot/internal/models"
 
-type UseCase interface {
+type Repository interface {
 	AddReminders(reminder models.AddReminderRequest) error
 	GetRemindersByUserId(userId int) ([]models.Reminder, error)
 }
+

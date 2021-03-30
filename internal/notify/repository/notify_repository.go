@@ -20,7 +20,7 @@ func (n *NotifyPostgres) GetNotifies() ([]models.NotifyRequest, error) {
 		select r.id,
 			   u.chat_id,
 			   r.text
-		from reminders r
+		from reminder r
 				 join users u on u.id = r.user_id
 		where timezone(u.timezone, r.date) between timezone(u.timezone, now()) and timezone(u.timezone, now() + (1 * interval '1 minute'))
 	`)
@@ -43,6 +43,6 @@ func (n *NotifyPostgres) GetNotifies() ([]models.NotifyRequest, error) {
 }
 
 func (r *NotifyPostgres) DeactivateReminder(id int) error {
-	_, err := r.db.Exec("update reminders set is_active = false where id = $1", id)
+	_, err := r.db.Exec("update reminder set is_active = false where id = $1", id)
 	return err
 }

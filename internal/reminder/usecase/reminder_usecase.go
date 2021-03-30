@@ -2,14 +2,14 @@ package usecase
 
 import (
 	"reminder_bot/internal/models"
-	"reminder_bot/internal/reminders"
+	"reminder_bot/internal/reminder"
 )
 
 type ReminderUseCase struct {
-	repo reminders.Repository
+	repo reminder.Repository
 }
 
-func NewReminderUseCase(repo reminders.Repository) *ReminderUseCase {
+func NewReminderUseCase(repo reminder.Repository) *ReminderUseCase {
 	return &ReminderUseCase{
 		repo: repo,
 	}

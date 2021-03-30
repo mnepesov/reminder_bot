@@ -6,13 +6,13 @@ COPY . /reminder_bot/
 WORKDIR /reminder_bot/
 
 RUN go mod download
-RUN GOOS=linux go build -o parse_service cmd/parsing/main.go
+RUN GOOS=linux go build -o notify_service cmd/notify/main.go
 
 FROM alpine:latest
 
 WORKDIR /root/
 
-COPY --from=0 /reminder_bot/parse_service .
+COPY --from=0 /reminder_bot/notify_service .
 COPY --from=0 /reminder_bot/config /config
 
 CMD ["./parse_service"]

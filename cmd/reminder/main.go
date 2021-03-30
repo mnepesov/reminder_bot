@@ -7,9 +7,9 @@ import (
 	"log"
 	"os"
 	"reminder_bot/config"
-	"reminder_bot/internal/reminders/delivery"
-	"reminder_bot/internal/reminders/repository"
-	"reminder_bot/internal/reminders/usecase"
+	"reminder_bot/internal/reminder/delivery"
+	"reminder_bot/internal/reminder/repository"
+	"reminder_bot/internal/reminder/usecase"
 	"reminder_bot/pkg/postgres"
 	"reminder_bot/pkg/rabbitmq"
 )

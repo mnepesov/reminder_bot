@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 	"reminder_bot/internal/models"
-	"reminder_bot/internal/reminders"
+	"reminder_bot/internal/reminder"
 )
 
 const (
@@ -25,10 +25,10 @@ const (
 type UserConsumer struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
-	useCase reminders.UseCase
+	useCase reminder.UseCase
 }
 
-func NewReminderConsumer(amqpConn *amqp.Connection, useCase reminders.UseCase) (*UserConsumer, error) {
+func NewReminderConsumer(amqpConn *amqp.Connection, useCase reminder.UseCase) (*UserConsumer, error) {
 	ch, err := amqpConn.Channel()
 	if err != nil {
 		return nil, errors.New("Error amqpConn.Channel")
